@@ -1,0 +1,36 @@
+---
+build:
+  dir: build
+  imports:
+  - github.com/narumiruna/bbgo-marketcap
+  targets:
+  - name: ig-amd64-linux
+    os: linux
+    arch: amd64
+  - name: ig-amd64-darwin
+    os: darwin
+    arch: amd64
+  - name: ig-amd64-freebsd
+    os: freebsd
+    arch: amd64
+
+notifications:
+  slack:
+    defaultChannel: "bbgo"
+    errorChannel: "bbgo-error"
+
+exchangeStrategies:
+  - on: max
+    marketcap:
+      interval: 1m
+      baseCurrency: USDT
+      targetCurrencies:
+        - BTC
+        - ETH
+      ignoreLocked: true
+      threshold: 2%
+      # max amount to buy or sell per order
+      maxAmount: 10_000
+      verbose: true
+      dryRun: true
+
