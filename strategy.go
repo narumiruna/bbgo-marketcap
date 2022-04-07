@@ -75,7 +75,6 @@ func (s *Strategy) Subscribe(session *bbgo.ExchangeSession) {
 }
 
 func (s *Strategy) Run(ctx context.Context, orderExecutor bbgo.OrderExecutor, session *bbgo.ExchangeSession) error {
-
 	session.MarketDataStream.OnKLineClosed(func(kline types.KLine) {
 		err := s.rebalance(ctx, orderExecutor, session)
 		if err != nil {
@@ -177,7 +176,7 @@ func (s *Strategy) generateSubmitOrders(prices, marketValues, targetWeights type
 		// calculate the difference between current weight and target weight
 		// if the difference is less than threshold, then we will not create the order
 		weightDifference := targetWeight - currentWeight
-		if math.Abs(weightDifference) > s.Threshold.Float64() {
+		if math.Abs(weightDifference) < s.Threshold.Float64() {
 			log.Infof("%s weight distance |%v - %v| = |%v| less than the threshold: %v",
 				symbol,
 				currentWeight,

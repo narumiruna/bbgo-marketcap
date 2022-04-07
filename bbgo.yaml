@@ -23,7 +23,7 @@ exchangeStrategies:
   - on: max
     marketcap:
       interval: 1m
-      baseCurrency: USDT
+      baseCurrency: TWD
       targetCurrencies:
         - BTC
         - ETH
