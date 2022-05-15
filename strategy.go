@@ -28,6 +28,7 @@ type Strategy struct {
 
 	Interval         types.Interval   `json:"interval"`
 	BaseCurrency     string           `json:"baseCurrency"`
+	BaseWeight       fixedpoint.Value `json:"baseWeight"`
 	TargetCurrencies []string         `json:"targetCurrencies"`
 	Threshold        fixedpoint.Value `json:"threshold"`
 	IgnoreLocked     bool             `json:"ignoreLocked"`
@@ -98,6 +99,12 @@ func (s *Strategy) getTargetWeights(ctx context.Context) (weights types.Float64S
 	// normalize
 	weights = weights.Normalize()
 
+	// rescale by 1 - baseWeight
+	weights = weights.MulScalar(1.0 - s.BaseWeight.Float64())
+
+	// append base weight
+	weights = append(weights, s.BaseWeight.Float64())
+
 	return weights, nil
 }
 
@@ -144,6 +151,10 @@ func (s *Strategy) getPrices(ctx context.Context, session *bbgo.ExchangeSession)
 		}
 		prices = append(prices, ticker.Last.Float64())
 	}
+
+	// append base currency price
+	prices = append(prices, 1.0)
+
 	return prices, nil
 }
 
@@ -155,6 +166,14 @@ func (s *Strategy) getQuantities(balances types.BalanceMap) (quantities types.Fl
 			quantities = append(quantities, balances[currency].Available.Float64())
 		}
 	}
+
+	// append base currency quantity
+	if s.IgnoreLocked {
+		quantities = append(quantities, balances[s.BaseCurrency].Total().Float64())
+	} else {
+		quantities = append(quantities, balances[s.BaseCurrency].Available.Float64())
+	}
+
 	return quantities
 }
 
