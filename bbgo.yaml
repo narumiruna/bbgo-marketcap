@@ -22,7 +22,7 @@ notifications:
 exchangeStrategies:
   - on: max
     marketcap:
-      interval: 1m
+      interval: 1h
       baseCurrency: TWD
       targetCurrencies:
         - BTC
