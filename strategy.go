@@ -123,6 +123,8 @@ func (s *Strategy) rebalance(ctx context.Context, orderExecutor bbgo.OrderExecut
 	quantities := s.getQuantities(balances)
 	marketValues := prices.Mul(quantities)
 
+	s.logAssets(marketValues, prices, quantities)
+
 	orders := s.generateSubmitOrders(prices, marketValues, targetWeights)
 	for _, order := range orders {
 		log.Infof("generated submit order: %s", order.String())
@@ -248,4 +250,20 @@ func (s *Strategy) logTargetWeights(weights types.Float64Slice) {
 	for i, weight := range weights {
 		log.Infof("symbol: %v, target weight: %v", symbols[i], weight)
 	}
+}
+
+func (s *Strategy) logAssets(marketValues, prices, quantities types.Float64Slice) {
+	weights := marketValues.Normalize()
+
+	if len(weights)-1 != len(s.TargetCurrencies) {
+		panic("len(weights)-1 != len(s.TargetCurrencies)")
+	}
+
+	for i, asset := range s.TargetCurrencies {
+		weight := weights[i]
+		log.Infof("asset: %v, weight: %v%%, qty: %v", asset, weight, quantities[i])
+	}
+
+	log.Infof("base currency: %v, weight: %v%%, qty: %v", s.BaseCurrency, weights[len(weights)-1], quantities[len(quantities)-1])
+
 }
