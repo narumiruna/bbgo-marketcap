@@ -7,6 +7,9 @@ build:
   - name: ig-amd64-linux
     os: linux
     arch: amd64
+  - name: ig-arm64-linux
+    os: linux
+    arch: arm64
   - name: ig-amd64-darwin
     os: darwin
     arch: amd64
