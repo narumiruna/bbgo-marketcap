@@ -96,7 +96,7 @@ func (s *Strategy) getTargetWeights(ctx context.Context) (weights types.Float64S
 	}
 
 	// normalize
-	weights = Normalize(weights)
+	weights = weights.Normalize()
 
 	return weights, nil
 }
@@ -159,7 +159,7 @@ func (s *Strategy) getQuantities(balances types.BalanceMap) (quantities types.Fl
 }
 
 func (s *Strategy) generateSubmitOrders(prices, marketValues, targetWeights types.Float64Slice) (submitOrders []types.SubmitOrder) {
-	currentWeights := Normalize(marketValues)
+	currentWeights := marketValues.Normalize()
 	totalValue := marketValues.Sum()
 
 	for i, currency := range s.TargetCurrencies {
