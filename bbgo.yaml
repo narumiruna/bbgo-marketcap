@@ -27,10 +27,10 @@ exchangeStrategies:
       targetCurrencies:
         - BTC
         - ETH
+        - MATIC
       ignoreLocked: true
       threshold: 2%
       # max amount to buy or sell per order
-      maxAmount: 10_000
+      maxAmount: 1_000
       verbose: true
-      dryRun: true
-
+      dryRun: false

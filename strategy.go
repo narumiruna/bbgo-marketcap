@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/c9s/bbgo/pkg/bbgo"
+	"github.com/c9s/bbgo/pkg/datasource/glassnode"
 	"github.com/c9s/bbgo/pkg/fixedpoint"
 	"github.com/c9s/bbgo/pkg/types"
 )
@@ -23,7 +24,7 @@ func init() {
 
 type Strategy struct {
 	Notifiability *bbgo.Notifiability
-	glassnode     *Glassnode
+	glassnode     *glassnode.DataSource
 
 	Interval         types.Interval   `json:"interval"`
 	BaseCurrency     string           `json:"baseCurrency"`
@@ -38,7 +39,7 @@ type Strategy struct {
 
 func (s *Strategy) Initialize() error {
 	apiKey := os.Getenv("GLASSNODE_API_KEY")
-	s.glassnode = NewGlassnode(apiKey)
+	s.glassnode = glassnode.New(apiKey)
 	return nil
 }
 
@@ -87,7 +88,7 @@ func (s *Strategy) Run(ctx context.Context, orderExecutor bbgo.OrderExecutor, se
 func (s *Strategy) getTargetWeights(ctx context.Context) (weights types.Float64Slice, err error) {
 	// get market cap values
 	for _, currency := range s.TargetCurrencies {
-		marketCap, err := s.glassnode.GetMarketCapInUSD(ctx, currency)
+		marketCap, err := s.glassnode.QueryMarketCapInUSD(ctx, currency)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +114,7 @@ func (s *Strategy) rebalance(ctx context.Context, orderExecutor bbgo.OrderExecut
 
 	balances := session.Account.Balances()
 	quantities := s.getQuantities(balances)
-	marketValues := prices.ElementwiseProduct(quantities)
+	marketValues := prices.Mul(quantities)
 
 	orders := s.generateSubmitOrders(prices, marketValues, targetWeights)
 	for _, order := range orders {
