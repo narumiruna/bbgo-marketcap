@@ -36,6 +36,8 @@ type Strategy struct {
 	DryRun           bool             `json:"dryRun"`
 	// max amount to buy or sell per order
 	MaxAmount fixedpoint.Value `json:"maxAmount"`
+
+	orderStore *bbgo.OrderStore
 }
 
 func (s *Strategy) Initialize() error {
@@ -77,6 +79,10 @@ func (s *Strategy) Subscribe(session *bbgo.ExchangeSession) {
 }
 
 func (s *Strategy) Run(ctx context.Context, orderExecutor bbgo.OrderExecutor, session *bbgo.ExchangeSession) error {
+	s.orderStore = bbgo.NewOrderStore("")
+	s.orderStore.RemoveCancelled = true
+	s.orderStore.BindStream(session.UserDataStream)
+
 	session.MarketDataStream.OnKLineClosed(func(kline types.KLine) {
 		err := s.rebalance(ctx, orderExecutor, session)
 		if err != nil {
@@ -109,6 +115,11 @@ func (s *Strategy) getTargetWeights(ctx context.Context) (weights types.Float64S
 }
 
 func (s *Strategy) rebalance(ctx context.Context, orderExecutor bbgo.OrderExecutor, session *bbgo.ExchangeSession) error {
+	err := orderExecutor.CancelOrders(ctx, s.orderStore.Orders()...)
+	if err != nil {
+		return err
+	}
+
 	prices, err := s.getPrices(ctx, session)
 	if err != nil {
 		return err
@@ -134,10 +145,12 @@ func (s *Strategy) rebalance(ctx context.Context, orderExecutor bbgo.OrderExecut
 		return nil
 	}
 
-	_, err = orderExecutor.SubmitOrders(ctx, orders...)
+	createdOrders, err := orderExecutor.SubmitOrders(ctx, orders...)
 	if err != nil {
 		return err
 	}
+
+	s.orderStore.Add(createdOrders...)
 
 	return nil
 }
@@ -229,8 +242,10 @@ func (s *Strategy) generateSubmitOrders(prices, marketValues, targetWeights type
 		order := types.SubmitOrder{
 			Symbol:   symbol,
 			Side:     side,
-			Type:     types.OrderTypeMarket,
-			Quantity: quantity}
+			Type:     types.OrderTypeLimit,
+			Quantity: quantity,
+			Price:    fixedpoint.NewFromFloat(currentPrice),
+		}
 
 		submitOrders = append(submitOrders, order)
 	}
