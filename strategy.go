@@ -260,13 +260,6 @@ func (s *Strategy) getSymbols() (symbols []string) {
 	return symbols
 }
 
-func (s *Strategy) logTargetWeights(weights types.Float64Slice) {
-	symbols := s.getSymbols()
-	for i, weight := range weights {
-		log.Infof("symbol: %v, target weight: %v", symbols[i], weight)
-	}
-}
-
 func (s *Strategy) logAssets(marketValues, prices, quantities types.Float64Slice) {
 	weights := marketValues.Normalize()
 
