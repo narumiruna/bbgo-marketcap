@@ -31,7 +31,6 @@ type Strategy struct {
 	BaseWeight       fixedpoint.Value `json:"baseWeight"`
 	TargetCurrencies []string         `json:"targetCurrencies"`
 	Threshold        fixedpoint.Value `json:"threshold"`
-	IgnoreLocked     bool             `json:"ignoreLocked"`
 	Verbose          bool             `json:"verbose"`
 	DryRun           bool             `json:"dryRun"`
 	// max amount to buy or sell per order
@@ -175,19 +174,11 @@ func (s *Strategy) getPrices(ctx context.Context, session *bbgo.ExchangeSession)
 
 func (s *Strategy) getQuantities(balances types.BalanceMap) (quantities types.Float64Slice) {
 	for _, currency := range s.TargetCurrencies {
-		if s.IgnoreLocked {
-			quantities = append(quantities, balances[currency].Total().Float64())
-		} else {
-			quantities = append(quantities, balances[currency].Available.Float64())
-		}
+		quantities = append(quantities, balances[currency].Total().Float64())
 	}
 
 	// append base currency quantity
-	if s.IgnoreLocked {
-		quantities = append(quantities, balances[s.BaseCurrency].Total().Float64())
-	} else {
-		quantities = append(quantities, balances[s.BaseCurrency].Available.Float64())
-	}
+	quantities = append(quantities, balances[s.BaseCurrency].Total().Float64())
 
 	return quantities
 }

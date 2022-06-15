@@ -32,7 +32,6 @@ exchangeStrategies:
         - BTC
         - ETH
         - MATIC
-      ignoreLocked: true
       threshold: 2%
       # max amount to buy or sell per order
       maxAmount: 1_000
